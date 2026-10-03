@@ -12,6 +12,7 @@ from pathlib import Path
 APP_NAME = "PDF Data Extractor"
 APP_VERSION = "1.0.0"
 DEFAULT_OUTPUT_DIR = Path.cwd() / "output"
+SETTINGS_FILE = Path.home() / ".pdf_data_extractor_settings.json"
 MAX_FILE_SIZE_MB = 500  # Maximum PDF size to process
 
 # ==========================
@@ -56,7 +57,7 @@ EXTRACTION_PATTERNS = {
         r"(\d+(?:\.\d+)?)\s*(?:units?|pcs?|pieces?|ea|sets?)\b",
         r"(?:Qty\s*[:=]?\s*)(\d+(?:\.\d+))",
         r"(\d+)\s*(?:x\s*)?(?:pcs?|units?|ea)",
-        r"(?:Qty\s*\d+\s*(?:of|in|for))",
+        r"(?:Qty\s*[:=]?\s*)(\d+(?:\.\d+)?)\b",
         r"\b(\d+)\s*(?:transformers?|breakers?|switches?|panels?|relays?|cables?)\b",
         r"\b(\d+)\s*(?:CTs?|PTs?|CBs?)\b",  # Common equipment abbreviations
     ],
@@ -86,22 +87,25 @@ EXTRACTION_PATTERNS = {
     "source_doc": [
         r"(?:Source\s*Doc(?:ument)?|Doc\.?\s*No\.?|Drawing\s*No\.)[\s:]*([^\n\r]{5,50})",
         r"(?:Part\s*[IVX]+[\s\-]*)([A-Z0-9][A-Z0-9\s\-._]{0,40})",
-        r"(?:Section\s*\d+(?:\.\d+)*)[\s\-]*([A-Z0-9][A-Z0-9\s\-._]{0,40})",
-        r"(?:Clause\s*\d+(?:\.\d+)*)[\s\-]*([A-Z0-9][A-Z0-9\s\-._]{0,40})",
         r"(?:Drawing\s*No\.?|Doc\.?\s*No\.?)[\s:]*([A-Z0-9][A-Z0-9\-._]{0,30})",
         r"(?:Rev\.?\s*[\dA-Z]+)[\s\-]*([A-Z0-9][A-Z0-9\s\-._]{0,20})",
         r"(?:TCS\s*[\-\s]?\d+(?:\.\d+)*)",
         r"\b(Part\s*[IVX]+)\b",
-        r"\b(Section\s*\d+(?:\.\d+)*)\b",
-        r"\b(Clause\s*\d+(?:\.\d+)*)\b",
+        r"\b(TCS\s*-\s*\d+(?:\.\d+)*)\b",
+    ],
+
+    # Section and clause patterns used by the Excel schedule
+    "section_clause": [
+        r"\b(Section\s+\d+(?:\.\d+)*)\b",
+        r"\b(Clause\s+\d+(?:\.\d+)*)\b",
         r"\b(TCS\s*-\s*\d+(?:\.\d+)*)\b",
     ],
 
     # Equipment type patterns - to capture equipment descriptions
     "equipment_type": [
-        r"(?:Equipment\s*Type|Type\s*of\s*Equipment|Item\s*Description|Equipment)[\s:]*([^\n\r]{5,100})",
+        r"(?:Equipment\s*Type|Type\s*of\s*Equipment|Item\s*Description|Equipment(?!\s*(?:ID|Tag)))[\s:]*([^\n\r]{5,100})",
         r"(?:Power\s*Transformer|Circuit\s*Breaker|Current\s*Transformer|Voltage\s*Transformer|GIS\s*Panel|Relay\s*Panel|Cable|Disconnect\s*Switch|Busbar|Isolator|Surge\s*Arrester|Reactors?|Capacitors?)",
-        r"(?:Transformer|Breaker|CT|VT|CB|GIS|Relay|Switch|Motor|Generator|Capacitor|Reactor|Arrester|Isolator)",
+        r"\b(?:Transformer|Breaker|CT|VT|CB|GIS|Relay|Switch|Motor|Generator|Capacitor|Reactor|Arrester|Isolator)\b",
         r"(?:MV\s*|HV\s*|LV\s*)?(?:Switchgear|Panel|Board)",
         r"\b(Power\s*Transformer|Circuit\s*Breaker|Current\s*Transformer|Voltage\s*Transformer|GIS\s*Panel|Relay\s*Panel|Cable|Disconnect\s*Switch|Busbar|Isolator|Surge\s*Arrester)\b",
         r"\b(Transformers?|Breakers?|Switches?|Panels?|Relays?)\b",

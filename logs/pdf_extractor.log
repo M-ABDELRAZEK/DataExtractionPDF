@@ -9,3 +9,23 @@
 2026-09-29 22:24:09,827 - core.excel_formatter - INFO - Created summary worksheet
 2026-09-29 22:24:10,030 - core.excel_formatter - INFO - Workbook saved successfully to C:\Users\MOHAMED\Desktop\21WN1008 SHOAIBA 3 FINAL SOW_extracted.xlsx
 2026-09-29 22:24:10,030 - core.excel_formatter - INFO - Excel workbook created and saved to C:\Users\MOHAMED\Desktop\21WN1008 SHOAIBA 3 FINAL SOW_extracted.xlsx
+2026-09-30 21:49:43,207 - __main__ - INFO - Starting PDF Data Extractor Application
+2026-09-30 21:49:44,522 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-03 23:02:28,775 - __main__ - INFO - Starting PDF Data Extractor Application
+2026-10-03 23:02:31,244 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-03 23:02:58,916 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-03 23:02:58,927 - gui.main_window - INFO - Started PDF extraction process
+2026-10-03 23:03:01,359 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
+2026-10-03 23:03:01,366 - core.rules_engine - INFO - RulesEngine initialized with 9 pattern categories
+2026-10-03 23:03:01,366 - core.pdf_processor - INFO - Extracting pages 1 to 3091 of 3091
+2026-10-03 23:11:15,743 - __main__ - INFO - Starting PDF Data Extractor Application
+2026-10-03 23:11:19,157 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-03 23:11:31,427 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-03 23:11:31,438 - gui.main_window - INFO - Started PDF extraction process
+2026-10-03 23:11:34,566 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
+2026-10-03 23:11:34,581 - core.rules_engine - INFO - RulesEngine initialized with 9 pattern categories
+2026-10-03 23:11:34,581 - core.pdf_processor - INFO - Extracting pages 1 to 3091 of 3091
+2026-10-03 23:18:41,594 - core.excel_formatter - INFO - ExcelFormatter initialized
+2026-10-03 23:18:41,608 - core.excel_formatter - INFO - Created summary worksheet
+2026-10-03 23:18:41,674 - core.excel_formatter - INFO - Workbook saved successfully to D:\EDU\Graduation Project\DataExtractionPDF\output\21WN1008 SHOAIBA 3 FINAL SOW_extracted.xlsx
+2026-10-03 23:18:41,675 - core.excel_formatter - INFO - Excel workbook created and saved to D:\EDU\Graduation Project\DataExtractionPDF\output\21WN1008 SHOAIBA 3 FINAL SOW_extracted.xlsx

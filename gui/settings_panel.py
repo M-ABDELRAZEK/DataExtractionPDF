@@ -9,6 +9,7 @@ from tkinter import ttk
 from pathlib import Path
 import json
 import logging
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -362,9 +363,35 @@ class SettingsPanel(ctk.CTkToplevel):
             self.output_dir_var.set(directory)
 
     def load_settings(self):
-        """Load settings from UI into the settings object"""
-        # This would typically load from a file, but for now we'll use defaults
-        pass
+        """Load persisted settings and reflect them in the controls."""
+        try:
+            if config.SETTINGS_FILE.exists():
+                with config.SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
+                    saved = json.load(settings_file)
+                if isinstance(saved, dict):
+                    for section, values in saved.items():
+                        if isinstance(values, dict):
+                            self.settings.setdefault(section, {}).update(values)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Could not load settings file: %s", exc)
+
+        self.theme_var.set(self.settings["general"]["theme"])
+        self.color_theme_var.set(self.settings["general"]["color_theme"])
+        self.output_dir_var.set(self.settings["general"]["default_output_dir"])
+        self.open_output_var.set(self.settings["general"]["open_output_after"])
+        self.log_level_var.set(self.settings["general"]["log_level"])
+        self.extract_tables_var.set(self.settings["pdf_processing"]["extract_tables"])
+        self.save_intermediate_var.set(self.settings["pdf_processing"]["save_intermediate"])
+        self.batch_size_var.set(str(self.settings["pdf_processing"]["batch_size"]))
+        self.timeout_var.set(str(self.settings["pdf_processing"]["timeout_seconds"]))
+        self.min_confidence_var.set(str(self.settings["extraction"]["min_confidence"]))
+        self.enable_context_var.set(self.settings["extraction"]["enable_context_scoring"])
+        self.enable_proximity_var.set(self.settings["extraction"]["enable_proximity_scoring"])
+        self.max_pages_var.set(str(self.settings["extraction"]["max_pages_per_batch"]))
+        self.auto_filter_var.set(self.settings["excel_output"]["auto_filter"])
+        self.freeze_header_var.set(self.settings["excel_output"]["freeze_header"])
+        self.confidence_coloring_var.set(self.settings["excel_output"]["confidence_coloring"])
+        self.summary_sheet_var.set(self.settings["excel_output"]["summary_sheet"])
 
     def save_settings(self):
         """Save current settings"""
@@ -391,9 +418,10 @@ class SettingsPanel(ctk.CTkToplevel):
             self.settings["excel_output"]["confidence_coloring"] = self.confidence_coloring_var.get()
             self.settings["excel_output"]["summary_sheet"] = self.summary_sheet_var.get()
 
-            # Here we would save to a file - for now just show success
+            with config.SETTINGS_FILE.open("w", encoding="utf-8") as settings_file:
+                json.dump(self.settings, settings_file, indent=2)
+
             logger.info("Settings saved successfully")
-            # In a real implementation, we would save to a JSON file
 
             # Apply theme changes immediately if needed
             # self.apply_theme_changes()

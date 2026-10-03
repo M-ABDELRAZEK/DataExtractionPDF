@@ -344,17 +344,26 @@ class RulesEngine:
         for ext in extractions:
             field = ext.field_name
             if field not in stats["by_field"]:
-                stats["by_field"][field] = {"count": 0, "pages": set()}
+                stats["by_field"][field] = {
+                    "count": 0,
+                    "pages": set(),
+                    "high": 0,
+                    "medium": 0,
+                    "low": 0,
+                }
             stats["by_field"][field]["count"] += 1
             stats["by_field"][field]["pages"].add(ext.page_number)
 
             # Count by confidence level
             if ext.confidence >= 0.8:
                 stats["by_confidence"]["high"] += 1
+                stats["by_field"][field]["high"] += 1
             elif ext.confidence >= 0.5:
                 stats["by_confidence"]["medium"] += 1
+                stats["by_field"][field]["medium"] += 1
             else:
                 stats["by_confidence"]["low"] += 1
+                stats["by_field"][field]["low"] += 1
 
             # Count by page
             page = ext.page_number

@@ -6,7 +6,7 @@ A modular Python application for extracting structured data from PDF files into 
 
 - **Modern GUI**: Built with CustomTkinter for a clean, professional interface
 - **Robust PDF Parsing**: Uses pdfplumber for efficient text extraction from large PDFs (up to 3,000+ pages)
-- **Rule-Based Extraction**: Configurable regex patterns for extracting specific data fields
+- **Item-Based Extraction**: Builds one equipment schedule row per detected item, including multi-page descriptions
 - **Multi-Tab Excel Output**: Organizes extracted data into separate worksheets with proper formatting
 - **Memory Efficient**: Processes PDFs page-by-page to handle large files without memory issues
 - **Extensible Design**: Modular architecture makes it easy to add new extraction rules and Excel tabs
@@ -17,6 +17,7 @@ A modular Python application for extracting structured data from PDF files into 
 - `config.py`: Centralized configuration, regex patterns, and styling definitions
 - `core/pdf_processor.py`: Handles PDF text extraction using pdfplumber (streaming)
 - `core/rules_engine.py`: Applies extraction rules using regex and contextual analysis
+- `core/item_extractor.py`: Converts schedule item rows into equipment records
 - `core/excel_formatter.py`: Creates formatted Excel workbooks with multiple tabs using openpyxl
 - `utils/file_handler.py`: File validation, path handling, and utility functions
 
@@ -42,6 +43,8 @@ A modular Python application for extracting structured data from PDF files into 
    - Choose an output directory for the Excel file
    - Configure processing options (optional)
    - Click "Start Extraction" to begin
+   - Use "Stop" to cancel processing before the workbook is written
+   - Use "Settings" to persist application preferences in your user profile
 
 ## Customization
 
@@ -84,3 +87,11 @@ Each worksheet includes:
 - Auto-adjusted column widths
 - Confidence-based cell coloring
 - Proper data formatting (text, numbers, dates)
+
+Intermediate page text, when enabled, is saved under an `intermediate_text`
+folder inside the selected output directory.
+
+Equipment schedule records are detected from item/unit/quantity rows in the PDF
+and are written using the same eight-column layout as the project spreadsheet
+template. Descriptions that continue onto later pages remain attached to the
+same equipment item.

@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import threading
 import queue
+import json
 import logging
 from pathlib import Path
 import sys
@@ -18,8 +19,11 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from core.pdf_processor import PDFProcessor
 from core.rules_engine import RulesEngine, ExtractedData
+from core.item_extractor import EquipmentItemExtractor
 from core.excel_formatter import format_and_save_data
 from utils.file_handler import validate_pdf_file, get_output_filename, ensure_directory
+from gui.settings_panel import show_settings
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +41,23 @@ class PDFExtractorApp(ctk.CTk):
         self.minsize(800, 600)
 
         # Set appearance mode and color theme
-        ctk.set_appearance_mode("System")  # Modes: "System" (default), "Dark", "Light"
-        ctk.set_default_color_theme("blue")  # Themes: "blue" (default), "green", "dark-blue"
+        saved_settings = self._load_saved_settings()
+        general_settings = saved_settings.get("general", {})
+        ctk.set_appearance_mode(general_settings.get("theme", "System"))
+        ctk.set_default_color_theme(general_settings.get("color_theme", "blue"))
 
         # Initialize variables
+
         self.pdf_file_path = tk.StringVar()
-        self.output_dir_path = tk.StringVar(value=str(Path.cwd() / "output"))
+        self.output_dir_path = tk.StringVar(
+            value=general_settings.get("default_output_dir", str(Path.cwd() / "output"))
+        )
         self.is_processing = False
         self.processing_thread = None
         self.message_queue = queue.Queue()
+        self.stop_event = threading.Event()
+        self.processing_options = {}
+        self.saved_settings = saved_settings
 
         # Create output directory
         ensure_directory(self.output_dir_path.get())
@@ -160,7 +172,9 @@ class PDFExtractorApp(ctk.CTk):
         self.options_title.grid(row=0, column=0, columnspan=3, padx=20, pady=(15, 10), sticky="w")
 
         # Checkboxes for options
-        self.extract_tables_var = tk.BooleanVar(value=False)
+        self.extract_tables_var = tk.BooleanVar(
+            value=self.saved_settings.get("pdf_processing", {}).get("extract_tables", False)
+        )
         self.extract_tables_cb = ctk.CTkCheckBox(
             self.options_frame,
             text="Extract Tables (Experimental)",
@@ -168,7 +182,9 @@ class PDFExtractorApp(ctk.CTk):
         )
         self.extract_tables_cb.grid(row=1, column=0, padx=20, pady=10, sticky="w")
 
-        self.save_intermediate_var = tk.BooleanVar(value=False)
+        self.save_intermediate_var = tk.BooleanVar(
+            value=self.saved_settings.get("pdf_processing", {}).get("save_intermediate", False)
+        )
         self.save_intermediate_cb = ctk.CTkCheckBox(
             self.options_frame,
             text="Save Intermediate Text",
@@ -176,7 +192,9 @@ class PDFExtractorApp(ctk.CTk):
         )
         self.save_intermediate_cb.grid(row=1, column=1, padx=20, pady=10, sticky="w")
 
-        self.open_output_var = tk.BooleanVar(value=True)
+        self.open_output_var = tk.BooleanVar(
+            value=self.saved_settings.get("general", {}).get("open_output_after", True)
+        )
         self.open_output_cb = ctk.CTkCheckBox(
             self.options_frame,
             text="Open Output Folder When Done",
@@ -247,6 +265,15 @@ class PDFExtractorApp(ctk.CTk):
         )
         self.clear_log_btn.grid(row=0, column=2, padx=20, pady=15)
 
+        self.settings_btn = ctk.CTkButton(
+            self.control_frame,
+            text="Settings",
+            width=100,
+            height=40,
+            command=self.open_settings
+        )
+        self.settings_btn.grid(row=0, column=3, padx=20, pady=15)
+
     def create_progress_frame(self):
         """Create progress display frame"""
         self.progress_frame = ctk.CTkFrame(self)
@@ -312,6 +339,22 @@ class PDFExtractorApp(ctk.CTk):
             self.output_dir_path.set(dir_path)
             self.log_message(f"Selected output directory: {dir_path}")
 
+    def open_settings(self):
+        """Open the persistent application settings panel."""
+        show_settings(self)
+
+    @staticmethod
+    def _load_saved_settings() -> dict:
+        """Load saved settings, falling back to an empty configuration."""
+        try:
+            if config.SETTINGS_FILE.exists():
+                with config.SETTINGS_FILE.open("r", encoding="utf-8") as settings_file:
+                    settings = json.load(settings_file)
+                return settings if isinstance(settings, dict) else {}
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Could not load saved settings: %s", exc)
+        return {}
+
     def log_message(self, message: str):
         """
         Add a message to the log display
@@ -345,6 +388,16 @@ class PDFExtractorApp(ctk.CTk):
 
         # Disable UI during processing
         self.set_processing_state(True)
+        self.stop_event.clear()
+        self.processing_options = {
+            "pdf_path": self.pdf_file_path.get().strip(),
+            "output_dir": self.output_dir_path.get().strip(),
+            "start_page": int(self.start_page_var.get()) if self.start_page_var.get().strip() else 1,
+            "end_page": int(self.end_page_var.get()) if self.end_page_var.get().strip() else None,
+            "extract_tables": self.extract_tables_var.get(),
+            "save_intermediate": self.save_intermediate_var.get(),
+            "open_output": self.open_output_var.get(),
+        }
 
         # Clear log and reset progress
         self.clear_log()
@@ -424,8 +477,7 @@ class PDFExtractorApp(ctk.CTk):
         if self.is_processing:
             self.log_message("Stop requested by user...")
             self.update_progress(0.0, "Stopping...")
-            # The worker thread should check for stop requests
-            # We'll implement this with a flag or queue mechanism
+            self.stop_event.set()
 
     def clear_log(self):
         """Clear the log display"""
@@ -473,23 +525,18 @@ class PDFExtractorApp(ctk.CTk):
         This runs in a separate thread to keep the GUI responsive
         """
         try:
-            self.log_message("Starting PDF extraction process...")
+            self.message_queue.put({"type": "log", "data": "Starting PDF extraction process..."})
             self.message_queue.put({"type": "log", "data": "Initializing components..."})
 
-            # Get input parameters
-            pdf_path = self.pdf_file_path.get().strip()
-            output_dir = self.output_dir_path.get().strip()
-
-            # Parse page range
-            try:
-                start_page = int(self.start_page_var.get()) if self.start_page_var.get().strip() else 1
-                end_page = int(self.end_page_var.get()) if self.end_page_var.get().strip() else None
-            except ValueError:
-                start_page = 1
-                end_page = None
-
-            extract_tables = self.extract_tables_var.get()
-            save_intermediate = self.save_intermediate_var.get()
+            # Snapshot UI values before the worker starts; Tk variables are not
+            # accessed from the worker thread.
+            options = self.processing_options
+            pdf_path = options["pdf_path"]
+            output_dir = options["output_dir"]
+            start_page = options["start_page"]
+            end_page = options["end_page"]
+            extract_tables = options["extract_tables"]
+            save_intermediate = options["save_intermediate"]
 
             # Initialize components
             self.message_queue.put({"type": "log", "data": "Initializing PDF processor..."})
@@ -497,11 +544,26 @@ class PDFExtractorApp(ctk.CTk):
 
             self.message_queue.put({"type": "log", "data": "Initializing rules engine..."})
             rules_engine = RulesEngine()
+            configured_threshold = self.saved_settings.get("extraction", {}).get(
+                "min_confidence"
+            )
+            if configured_threshold is not None:
+                config.MIN_CONFIDENCE_THRESHOLD = float(configured_threshold)
 
             # Determine actual page range to process
             total_pages = pdf_processor.get_total_pages()
             actual_start = max(1, start_page)
             actual_end = min(total_pages, end_page) if end_page else total_pages
+            if actual_start > total_pages:
+                raise ValueError(
+                    f"Start page {actual_start} is outside the PDF "
+                    f"(it contains {total_pages} pages)"
+                )
+            if actual_end < actual_start:
+                raise ValueError(
+                    f"End page {actual_end} must be greater than or equal to "
+                    f"start page {actual_start}"
+                )
 
             self.message_queue.put({
                 "type": "log",
@@ -510,25 +572,36 @@ class PDFExtractorApp(ctk.CTk):
 
             # Process PDF pages
             all_extracted_data = []
+            item_extractor = EquipmentItemExtractor()
+            item_records = []
             processed_pages = 0
 
             self.message_queue.put({"type": "log", "data": "Beginning page-by-page processing..."})
+            total_selected_pages = actual_end - actual_start + 1
+            intermediate_dir = Path(output_dir) / "intermediate_text"
+            if save_intermediate:
+                ensure_directory(intermediate_dir)
 
             for page_num, page_text, tables in pdf_processor.extract_text_pages(
                 start_page=actual_start-1,  # Convert to 0-based
                 end_page=actual_end,        # Already 1-based exclusive
                 extract_tables=extract_tables
             ):
-                # Check if we should stop (we'd need a stop flag - simplified for now)
-                # In a full implementation, we'd check a shared flag or queue
-
-                if not page_text and not tables:
-                    continue
+                if self.stop_event.is_set():
+                    self.message_queue.put({
+                        "type": "complete",
+                        "data": {
+                            "success": False,
+                            "message": "Extraction cancelled by user."
+                        }
+                    })
+                    return
 
                 # Extract data from text
                 if page_text:
                     page_data = rules_engine.extract_all_fields(page_text, page_num)
                     all_extracted_data.extend(page_data)
+                    item_records.extend(item_extractor.process_page(page_text, page_num))
 
                     if page_data:
                         self.message_queue.put({
@@ -539,8 +612,8 @@ class PDFExtractorApp(ctk.CTk):
                 processed_pages += 1
 
                 # Update progress
-                progress_value = processed_pages / (actual_end - actual_start + 1)
-                progress_text = f"Processed {processed_pages}/{actual_end - actual_start + 1} pages"
+                progress_value = processed_pages / total_selected_pages
+                progress_text = f"Processed {processed_pages}/{total_selected_pages} pages"
                 self.message_queue.put({
                     "type": "progress",
                     "data": {"value": progress_value, "text": progress_text}
@@ -548,14 +621,14 @@ class PDFExtractorApp(ctk.CTk):
 
                 # Save intermediate text if requested
                 if save_intermediate and page_text:
-                    # This would save page text to files - simplified for now
-                    pass
+                    intermediate_path = intermediate_dir / f"page_{page_num:04d}.txt"
+                    intermediate_path.write_text(page_text, encoding="utf-8")
 
             # Organize data by worksheet/type
             self.message_queue.put({"type": "log", "data": "Organizing extracted data..."})
 
-            # Group data by page number to create records
-            grouped_data = self.group_data_by_page(all_extracted_data)
+            item_records.extend(item_extractor.finish())
+            grouped_data = {"Equipment_Schedule": item_records}
 
             # Generate statistics
             statistics = rules_engine.get_field_statistics(all_extracted_data)
@@ -574,13 +647,22 @@ class PDFExtractorApp(ctk.CTk):
             })
 
             # Format and save to Excel
+            if self.stop_event.is_set():
+                self.message_queue.put({
+                    "type": "complete",
+                    "data": {
+                        "success": False,
+                        "message": "Extraction cancelled by user."
+                    }
+                })
+                return
             format_and_save_data(grouped_data, str(output_path), statistics)
 
             # Completion message
             success_msg = (
                 f"Extraction completed successfully!\n"
                 f"Processed {processed_pages} pages\n"
-                f"Extracted {len(all_extracted_data)} data points\n"
+                f"Extracted {len(item_records)} equipment items\n"
                 f"Saved to: {output_path}"
             )
 
@@ -590,7 +672,7 @@ class PDFExtractorApp(ctk.CTk):
             })
 
             # Open output folder if requested
-            if self.open_output_var.get():
+            if options["open_output"]:
                 try:
                     os.startfile(str(Path(output_dir)))  # Windows
                 except AttributeError:
@@ -641,38 +723,60 @@ class PDFExtractorApp(ctk.CTk):
                 "notes": ""
             }
 
-            # Fill in values from extracted data on this page
+            # Fill in values from extracted data on this page. Multiple
+            # matches are preserved instead of silently overwriting each other.
+            confidence_values = []
             for item in page_items:
                 field_name = item.field_name
                 value = item.value.strip() if item.value else ""
+                if value:
+                    confidence_values.append(item.confidence)
 
                 # Map field_name to record keys
                 if field_name == "source_doc":
-                    record["source_doc"] = value
+                    record["source_doc"] = self._append_unique(record["source_doc"], value)
                 elif field_name == "section_clause":
-                    record["section_clause"] = value
+                    record["section_clause"] = self._append_unique(record["section_clause"], value)
                 elif field_name == "equipment_id":
                     # Use equipment_id for Equipment/Item column
-                    record["equipment_item"] = value
+                    record["equipment_item"] = self._append_unique(record["equipment_item"], value)
                 elif field_name == "equipment_type":
                     # If we don't have an equipment_id yet, use type as fallback
                     if not record["equipment_item"]:
                         record["equipment_item"] = value
+                    else:
+                        record["equipment_item"] = self._append_unique(
+                            record["equipment_item"], value
+                        )
                 elif field_name == "quantity":
-                    record["quantity"] = value
+                    record["quantity"] = self._append_unique(record["quantity"], value)
                 elif field_name == "rating":
-                    record["rating"] = value
+                    record["rating"] = self._append_unique(record["rating"], value)
                 elif field_name == "standard":
-                    record["standard"] = value
+                    record["standard"] = self._append_unique(record["standard"], value)
                 elif field_name == "notes":
-                    record["notes"] = value
+                    record["notes"] = self._append_unique(record["notes"], value)
                 # page_number is already set from the page grouping
 
+            if confidence_values:
+                record["confidence"] = sum(confidence_values) / len(confidence_values)
             records.append(record)
 
         # Return data grouped by worksheet (only Equipment_Schedule for now)
         grouped = {"Equipment_Schedule": records}
         return grouped
+
+    @staticmethod
+    def _append_unique(existing: str, value: str) -> str:
+        """Append a value to a cell while avoiding duplicate matches."""
+        if not value:
+            return existing
+        if not existing:
+            return value
+        existing_values = [item.strip() for item in existing.split(";")]
+        if value not in existing_values:
+            existing_values.append(value)
+        return "; ".join(existing_values)
 
     def extraction_complete(self, success: bool, message: str):
         """

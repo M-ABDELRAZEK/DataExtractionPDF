@@ -210,9 +210,9 @@ class ExcelFormatter:
             except (ValueError, TypeError):
                 return value
 
-        elif field_name == "rating" and len(value) > 100:
-            # Truncate very long ratings for readability
-            return value[:100] + "..." if len(value) > 100 else value
+        elif field_name == "rating":
+            # No truncation - preserve full rating/specification data
+            return value
 
         return value
 
@@ -280,15 +280,16 @@ class ExcelFormatter:
                 low_count = 0
                 pages = field_data.get("pages", [])
 
-                # This would need to be enhanced to track confidence by field
-                # For now, we'll use overall stats or approximate
                 total_count = field_data.get("count", 0)
+                high_count = field_data.get("high", 0)
+                medium_count = field_data.get("medium", 0)
+                low_count = field_data.get("low", 0)
 
                 cell = ws.cell(row=row_idx, column=1, value=field_name)
                 cell = ws.cell(row=row_idx, column=2, value=total_count)
-                cell = ws.cell(row=row_idx, column=3, value=high_count)  # Approximate
-                cell = ws.cell(row=row_idx, column=4, value=medium_count)  # Approximate
-                cell = ws.cell(row=row_idx, column=5, value=low_count)  # Approximate
+                cell = ws.cell(row=row_idx, column=3, value=high_count)
+                cell = ws.cell(row=row_idx, column=4, value=medium_count)
+                cell = ws.cell(row=row_idx, column=5, value=low_count)
                 cell = ws.cell(row=row_idx, column=6, value=min(pages) if pages else "")
                 cell = ws.cell(row=row_idx, column=7, value=max(pages) if pages else "")
 
