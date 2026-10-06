@@ -1,6 +1,6 @@
 """
 Main Entry Point
-Application launcher for the PDF Data Extractor
+Application launcher for the PTS to SLD Data Extractor
 """
 
 import sys
@@ -31,7 +31,7 @@ def main():
         # Setup logging
         setup_logging()
         logger = logging.getLogger(__name__)
-        logger.info("Starting PDF Data Extractor Application")
+        logger.info("Starting PTS to SLD Data Extractor Application")
 
         # Import and run the GUI application
         from gui.main_window import PDFExtractorApp
@@ -42,7 +42,7 @@ def main():
     except ImportError as e:
         print(f"Import error: {e}")
         print("Please ensure all required packages are installed:")
-        print("  pip install customtkinter pdfplumber openpyxl")
+        print("  pip install -r requirements.txt")
         sys.exit(1)
     except Exception as e:
         print(f"Application error: {e}")

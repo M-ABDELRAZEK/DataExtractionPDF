@@ -18,9 +18,7 @@ import os
 sys.path.append(str(Path(__file__).parent.parent))
 
 from core.pdf_processor import PDFProcessor
-from core.rules_engine import RulesEngine, ExtractedData
-from core.item_extractor import EquipmentItemExtractor
-from core.excel_formatter import format_and_save_data
+from core.sld_template_extractor import PDFIndex, SLDTemplate, SLDTemplateExtractor
 from utils.file_handler import validate_pdf_file, get_output_filename, ensure_directory
 from gui.settings_panel import show_settings
 import config
@@ -36,7 +34,7 @@ class PDFExtractorApp(ctk.CTk):
         super().__init__()
 
         # Configure window
-        self.title("PDF Data Extractor v1.0")
+        self.title("PTS to SLD Data Extractor v2.0")
         self.geometry("900x700")
         self.minsize(800, 600)
 
@@ -98,7 +96,7 @@ class PDFExtractorApp(ctk.CTk):
         # App title
         self.title_label = ctk.CTkLabel(
             self.header_frame,
-            text="PDF Data Extractor",
+            text="PTS to SLD Data Extractor",
             font=ctk.CTkFont(size=28, weight="bold")
         )
         self.title_label.grid(row=0, column=0, padx=20, pady=20)
@@ -106,7 +104,7 @@ class PDFExtractorApp(ctk.CTk):
         # App subtitle
         self.subtitle_label = ctk.CTkLabel(
             self.header_frame,
-            text="Extract structured data from PDFs into formatted Excel workbooks",
+            text="Fill a fixed SLD Excel template directly from an uploaded PTS PDF",
             font=ctk.CTkFont(size=14)
         )
         self.subtitle_label.grid(row=1, column=0, padx=20, pady=(0, 20))
@@ -158,29 +156,17 @@ class PDFExtractorApp(ctk.CTk):
         self.output_browse_btn.grid(row=1, column=2, padx=(10, 20), pady=15)
 
     def create_options_frame(self):
-        """Create processing options frame"""
+        """Create processing options for the fixed SLD template workflow."""
         self.options_frame = ctk.CTkFrame(self)
         self.options_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         self.options_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-        # Options title
         self.options_title = ctk.CTkLabel(
             self.options_frame,
             text="Processing Options",
             font=ctk.CTkFont(size=16, weight="bold")
         )
         self.options_title.grid(row=0, column=0, columnspan=3, padx=20, pady=(15, 10), sticky="w")
-
-        # Checkboxes for options
-        self.extract_tables_var = tk.BooleanVar(
-            value=self.saved_settings.get("pdf_processing", {}).get("extract_tables", False)
-        )
-        self.extract_tables_cb = ctk.CTkCheckBox(
-            self.options_frame,
-            text="Extract Tables (Experimental)",
-            variable=self.extract_tables_var
-        )
-        self.extract_tables_cb.grid(row=1, column=0, padx=20, pady=10, sticky="w")
 
         self.save_intermediate_var = tk.BooleanVar(
             value=self.saved_settings.get("pdf_processing", {}).get("save_intermediate", False)
@@ -190,7 +176,7 @@ class PDFExtractorApp(ctk.CTk):
             text="Save Intermediate Text",
             variable=self.save_intermediate_var
         )
-        self.save_intermediate_cb.grid(row=1, column=1, padx=20, pady=10, sticky="w")
+        self.save_intermediate_cb.grid(row=1, column=0, padx=20, pady=10, sticky="w")
 
         self.open_output_var = tk.BooleanVar(
             value=self.saved_settings.get("general", {}).get("open_output_after", True)
@@ -200,14 +186,24 @@ class PDFExtractorApp(ctk.CTk):
             text="Open Output Folder When Done",
             variable=self.open_output_var
         )
-        self.open_output_cb.grid(row=1, column=2, padx=20, pady=10, sticky="w")
+        self.open_output_cb.grid(row=1, column=1, padx=20, pady=10, sticky="w")
 
-        # Page range options
-        self.page_range_label = ctk.CTkLabel(self.options_frame, text="Page Range (optional):", font=ctk.CTkFont(weight="bold"))
-        self.page_range_label.grid(row=2, column=0, padx=20, pady=(10, 5), sticky="w")
+        workflow_label = ctk.CTkLabel(
+            self.options_frame,
+            text="Workflow: Fixed SLD Template → Drawing Value / PTS Page / PTS Reference",
+            text_color=("#1F4E78", "#8DB8E8")
+        )
+        workflow_label.grid(row=1, column=2, padx=20, pady=10, sticky="w")
+
+        self.page_range_label = ctk.CTkLabel(
+            self.options_frame,
+            text="Physical PDF Page Range (optional):",
+            font=ctk.CTkFont(weight="bold")
+        )
+        self.page_range_label.grid(row=2, column=0, padx=20, pady=(10, 15), sticky="w")
 
         self.page_range_frame = ctk.CTkFrame(self.options_frame)
-        self.page_range_frame.grid(row=2, column=1, columnspan=2, padx=20, pady=5, sticky="ew")
+        self.page_range_frame.grid(row=2, column=1, columnspan=2, padx=20, pady=(5, 15), sticky="ew")
         self.page_range_frame.grid_columnconfigure((0, 1), weight=1)
 
         self.start_page_var = tk.StringVar(value="1")
@@ -394,7 +390,6 @@ class PDFExtractorApp(ctk.CTk):
             "output_dir": self.output_dir_path.get().strip(),
             "start_page": int(self.start_page_var.get()) if self.start_page_var.get().strip() else 1,
             "end_page": int(self.end_page_var.get()) if self.end_page_var.get().strip() else None,
-            "extract_tables": self.extract_tables_var.get(),
             "save_intermediate": self.save_intermediate_var.get(),
             "open_output": self.open_output_var.get(),
         }
@@ -520,167 +515,139 @@ class PDFExtractorApp(ctk.CTk):
             self.extraction_error(data)
 
     def extraction_worker(self):
-        """
-        Worker thread function that performs the actual PDF extraction
-        This runs in a separate thread to keep the GUI responsive
+        """Run the fixed-template SLD extraction in a background thread.
+
+        Performance rule: the uploaded PDF is opened/extracted once, then all
+        template rows search the in-memory page index. No equipment-schedule
+        branch remains in the application.
         """
         try:
-            self.message_queue.put({"type": "log", "data": "Starting PDF extraction process..."})
-            self.message_queue.put({"type": "log", "data": "Initializing components..."})
-
-            # Snapshot UI values before the worker starts; Tk variables are not
-            # accessed from the worker thread.
             options = self.processing_options
             pdf_path = options["pdf_path"]
             output_dir = options["output_dir"]
             start_page = options["start_page"]
             end_page = options["end_page"]
-            extract_tables = options["extract_tables"]
             save_intermediate = options["save_intermediate"]
 
-            # Initialize components
-            self.message_queue.put({"type": "log", "data": "Initializing PDF processor..."})
+            self.message_queue.put({"type": "log", "data": "Starting SLD template extraction..."})
+            self.message_queue.put({"type": "log", "data": "Opening uploaded PTS PDF..."})
             pdf_processor = PDFProcessor(pdf_path)
 
-            self.message_queue.put({"type": "log", "data": "Initializing rules engine..."})
-            rules_engine = RulesEngine()
-            configured_threshold = self.saved_settings.get("extraction", {}).get(
-                "min_confidence"
-            )
-            if configured_threshold is not None:
-                config.MIN_CONFIDENCE_THRESHOLD = float(configured_threshold)
-
-            # Determine actual page range to process
             total_pages = pdf_processor.get_total_pages()
             actual_start = max(1, start_page)
             actual_end = min(total_pages, end_page) if end_page else total_pages
             if actual_start > total_pages:
                 raise ValueError(
-                    f"Start page {actual_start} is outside the PDF "
-                    f"(it contains {total_pages} pages)"
+                    f"Start page {actual_start} is outside the PDF (it contains {total_pages} pages)"
                 )
             if actual_end < actual_start:
-                raise ValueError(
-                    f"End page {actual_end} must be greater than or equal to "
-                    f"start page {actual_start}"
-                )
+                raise ValueError("End page must be greater than or equal to start page")
+
+            project_root = Path(__file__).resolve().parent.parent
+            template_path = project_root / "assets" / "Extracted Sheet Tempelate.xlsx"
+            template = SLDTemplate(template_path)
+            template_rows = template.load_rows()
+            if not template_rows:
+                raise ValueError("The SLD template contains no extractable rows in columns A-C.")
 
             self.message_queue.put({
                 "type": "log",
-                "data": f"Processing pages {actual_start} to {actual_end} of {total_pages}"
+                "data": (
+                    f"Indexing physical PDF pages {actual_start}-{actual_end} once "
+                    f"({actual_end - actual_start + 1} pages)..."
+                )
             })
 
-            # Process PDF pages
-            all_extracted_data = []
-            item_extractor = EquipmentItemExtractor()
-            item_records = []
-            processed_pages = 0
-
-            self.message_queue.put({"type": "log", "data": "Beginning page-by-page processing..."})
-            total_selected_pages = actual_end - actual_start + 1
-            intermediate_dir = Path(output_dir) / "intermediate_text"
+            intermediate_dir = None
             if save_intermediate:
-                ensure_directory(intermediate_dir)
+                intermediate_dir = Path(output_dir) / "intermediate_text"
 
-            for page_num, page_text, tables in pdf_processor.extract_text_pages(
-                start_page=actual_start-1,  # Convert to 0-based
-                end_page=actual_end,        # Already 1-based exclusive
-                extract_tables=extract_tables
-            ):
-                if self.stop_event.is_set():
-                    self.message_queue.put({
-                        "type": "complete",
-                        "data": {
-                            "success": False,
-                            "message": "Extraction cancelled by user."
-                        }
-                    })
-                    return
-
-                # Extract data from text
-                if page_text:
-                    page_data = rules_engine.extract_all_fields(page_text, page_num)
-                    all_extracted_data.extend(page_data)
-                    item_records.extend(item_extractor.process_page(page_text, page_num))
-
-                    if page_data:
-                        self.message_queue.put({
-                            "type": "log",
-                            "data": f"Page {page_num}: Extracted {len(page_data)} data points"
-                        })
-
-                processed_pages += 1
-
-                # Update progress
-                progress_value = processed_pages / total_selected_pages
-                progress_text = f"Processed {processed_pages}/{total_selected_pages} pages"
+            def index_progress(done: int, total: int):
+                # Indexing occupies the first 70% of progress.
+                value = 0.70 * (done / max(total, 1))
                 self.message_queue.put({
                     "type": "progress",
-                    "data": {"value": progress_value, "text": progress_text}
+                    "data": {
+                        "value": value,
+                        "text": f"Indexing PDF: {done}/{total} physical pages"
+                    }
                 })
 
-                # Save intermediate text if requested
-                if save_intermediate and page_text:
-                    intermediate_path = intermediate_dir / f"page_{page_num:04d}.txt"
-                    intermediate_path.write_text(page_text, encoding="utf-8")
-
-            # Organize data by worksheet/type
-            self.message_queue.put({"type": "log", "data": "Organizing extracted data..."})
-
-            item_records.extend(item_extractor.finish())
-            grouped_data = {"Equipment_Schedule": item_records}
-
-            # Generate statistics
-            statistics = rules_engine.get_field_statistics(all_extracted_data)
-
-            # Create output filename
-            pdf_name = Path(pdf_path).stem
-            output_filename = get_output_filename(pdf_path, suffix="extracted", extension=".xlsx")
-            output_path = Path(output_dir) / output_filename
-
-            # Ensure output directory exists
-            ensure_directory(output_dir)
+            pdf_index = PDFIndex.build(
+                pdf_processor,
+                start_page=actual_start,
+                end_page=actual_end,
+                progress_callback=index_progress,
+                stop_callback=self.stop_event.is_set,
+                intermediate_dir=intermediate_dir,
+            )
 
             self.message_queue.put({
                 "type": "log",
-                "data": f"Creating Excel workbook: {output_path.name}"
+                "data": f"PDF indexed. Resolving {len(template_rows)} fixed template rows..."
             })
 
-            # Format and save to Excel
-            if self.stop_event.is_set():
+            extractor = SLDTemplateExtractor(pdf_index, pdf_path)
+            project_name = extractor.extract_project_name()
+            self.message_queue.put({
+                "type": "log",
+                "data": f"Project name: {project_name}"
+            })
+
+            def row_progress(done: int, total: int):
+                value = 0.70 + 0.28 * (done / max(total, 1))
                 self.message_queue.put({
-                    "type": "complete",
+                    "type": "progress",
                     "data": {
-                        "success": False,
-                        "message": "Extraction cancelled by user."
+                        "value": value,
+                        "text": f"Extracting template rows: {done}/{total}"
                     }
                 })
-                return
-            format_and_save_data(grouped_data, str(output_path), statistics)
 
-            # Completion message
-            success_msg = (
-                f"Extraction completed successfully!\n"
-                f"Processed {processed_pages} pages\n"
-                f"Extracted {len(item_records)} equipment items\n"
-                f"Saved to: {output_path}"
+            results = extractor.extract_rows(
+                template_rows,
+                progress_callback=row_progress,
+                stop_callback=self.stop_event.is_set,
             )
 
+            if self.stop_event.is_set():
+                raise InterruptedError("Extraction cancelled by user.")
+
+            ensure_directory(output_dir)
+            output_path = Path(output_dir) / "Extracted Data.xlsx"
+            self.message_queue.put({
+                "type": "progress",
+                "data": {"value": 0.99, "text": "Writing Excel output..."}
+            })
+            template.create_output(output_path, project_name, results)
+
+            found = sum(1 for result in results.values() if result.value != "NA")
+            missing = len(results) - found
+            success_msg = (
+                f"SLD extraction completed successfully!\n"
+                f"Indexed {len(pdf_index.pages)} physical PDF pages once\n"
+                f"Template rows: {len(results)} | Found: {found} | NA: {missing}\n"
+                f"Saved to: {output_path}"
+            )
             self.message_queue.put({
                 "type": "complete",
                 "data": {"success": True, "message": success_msg}
             })
 
-            # Open output folder if requested
             if options["open_output"]:
                 try:
-                    os.startfile(str(Path(output_dir)))  # Windows
+                    os.startfile(str(Path(output_dir)))
                 except AttributeError:
-                    try:
-                        os.system(f'open "{output_dir}"')  # macOS
-                    except AttributeError:
-                        os.system(f'xdg-open "{output_dir}"')  # Linux
+                    if sys.platform == "darwin":
+                        os.system(f'open "{output_dir}"')
+                    else:
+                        os.system(f'xdg-open "{output_dir}"')
 
+        except InterruptedError:
+            self.message_queue.put({
+                "type": "complete",
+                "data": {"success": False, "message": "Extraction cancelled by user."}
+            })
         except Exception as e:
             error_msg = f"Error during extraction: {str(e)}"
             logger.error(error_msg, exc_info=True)
@@ -688,95 +655,6 @@ class PDFExtractorApp(ctk.CTk):
                 "type": "error",
                 "data": {"message": error_msg, "exception": str(e)}
             })
-
-    def group_data_by_page(self, extracted_data: list) -> dict:
-        """
-        Group extracted data by page number to create records for Excel output
-
-        Args:
-            extracted_data (list): List of ExtractedData objects
-
-        Returns:
-            dict: Dictionary mapping worksheet names to lists of data dictionaries
-                  Each data dict has keys matching the Excel template fields
-        """
-        # Group by page number
-        pages = {}
-        for data in extracted_data:
-            page_num = data.page_number
-            if page_num not in pages:
-                pages[page_num] = []
-            pages[page_num].append(data)
-
-        # Build records for each page
-        records = []
-        for page_num, page_items in pages.items():
-            # Initialize record with empty values for all template fields
-            record = {
-                "source_doc": "",
-                "section_clause": "",
-                "page_number": page_num,
-                "equipment_item": "",
-                "quantity": "",
-                "rating": "",
-                "standard": "",
-                "notes": ""
-            }
-
-            # Fill in values from extracted data on this page. Multiple
-            # matches are preserved instead of silently overwriting each other.
-            confidence_values = []
-            for item in page_items:
-                field_name = item.field_name
-                value = item.value.strip() if item.value else ""
-                if value:
-                    confidence_values.append(item.confidence)
-
-                # Map field_name to record keys
-                if field_name == "source_doc":
-                    record["source_doc"] = self._append_unique(record["source_doc"], value)
-                elif field_name == "section_clause":
-                    record["section_clause"] = self._append_unique(record["section_clause"], value)
-                elif field_name == "equipment_id":
-                    # Use equipment_id for Equipment/Item column
-                    record["equipment_item"] = self._append_unique(record["equipment_item"], value)
-                elif field_name == "equipment_type":
-                    # If we don't have an equipment_id yet, use type as fallback
-                    if not record["equipment_item"]:
-                        record["equipment_item"] = value
-                    else:
-                        record["equipment_item"] = self._append_unique(
-                            record["equipment_item"], value
-                        )
-                elif field_name == "quantity":
-                    record["quantity"] = self._append_unique(record["quantity"], value)
-                elif field_name == "rating":
-                    record["rating"] = self._append_unique(record["rating"], value)
-                elif field_name == "standard":
-                    record["standard"] = self._append_unique(record["standard"], value)
-                elif field_name == "notes":
-                    record["notes"] = self._append_unique(record["notes"], value)
-                # page_number is already set from the page grouping
-
-            if confidence_values:
-                record["confidence"] = sum(confidence_values) / len(confidence_values)
-            records.append(record)
-
-        # Return data grouped by worksheet (only Equipment_Schedule for now)
-        grouped = {"Equipment_Schedule": records}
-        return grouped
-
-    @staticmethod
-    def _append_unique(existing: str, value: str) -> str:
-        """Append a value to a cell while avoiding duplicate matches."""
-        if not value:
-            return existing
-        if not existing:
-            return value
-        existing_values = [item.strip() for item in existing.split(";")]
-        if value not in existing_values:
-            existing_values.append(value)
-        return "; ".join(existing_values)
 
     def extraction_complete(self, success: bool, message: str):
         """

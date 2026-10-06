@@ -1,0 +1,1 @@
+- [PDF extraction memory error fix](pdf-extraction-memory-error-fix.md) — Fix for MemoryError during PDF text extraction due to font decompression issues
