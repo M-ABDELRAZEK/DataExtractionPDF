@@ -4,3 +4,9 @@
 2026-10-06 15:29:10,394 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
 2026-10-06 15:29:15,741 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
 2026-10-06 15:32:21,229 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-07 12:10:23,802 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-07 12:10:25,185 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-07 12:10:51,907 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-07 12:10:51,926 - gui.main_window - INFO - Started PDF extraction process
+2026-10-07 12:10:52,485 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
+2026-10-07 12:10:52,506 - core.pdf_processor - INFO - Extracting physical PDF pages 1 to 3091
