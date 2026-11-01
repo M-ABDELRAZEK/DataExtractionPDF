@@ -18,7 +18,7 @@ import os
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from core.pipeline_v3 import run_pipeline
+from core.pipeline import run_pipeline
 from core.groq_extractor import GroqExtractor, DEFAULT_MODEL, resolve_api_key
 from cad.gis_planner import build_cad_plan_from_json
 from cad.autocad_backend import insert_draft
