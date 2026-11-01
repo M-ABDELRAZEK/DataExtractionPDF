@@ -55,6 +55,3 @@ README_V*.md
 v*_cli.py
 core/pipeline_v*.py
 core/gis_schedule.py
-
-# Duplicate directories
-cad/
