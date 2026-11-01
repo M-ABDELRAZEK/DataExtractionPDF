@@ -52,6 +52,7 @@ class PDFProcessor:
         start_page: int = 0,
         end_page: Optional[int] = None,
         extract_tables: bool = False,
+        ocr_empty_pages: bool = False,
     ) -> Generator[Tuple[int, str, Optional[list]], None, None]:
         """Yield ``(physical_page_number, text, tables)``.
 
@@ -82,6 +83,16 @@ class PDFProcessor:
                 except Exception as exc:
                     logger.warning("PyMuPDF failed on page %d: %s", page_index + 1, exc)
                     text = self._fallback_page_text(page_index + 1)
+                if not text.strip() and ocr_empty_pages:
+                    try:
+                        # Local Tesseract OCR (NO API tokens). This is slower and
+                        # may misread single-line diagrams; human review needed.
+                        page = doc.load_page(page_index)
+                        if page.get_images():
+                            textpage = page.get_textpage_ocr(language="eng", dpi=180, full=True)
+                            text = page.get_text("text", textpage=textpage, sort=True)
+                    except Exception as exc:
+                        logger.warning("OCR failed on page %d: %s", page_index+1, exc)
 
                 # Tables are not needed by the fixed-template extractor. Keep a
                 # predictable return shape for existing callers.

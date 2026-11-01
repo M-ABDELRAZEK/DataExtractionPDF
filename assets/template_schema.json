@@ -1,0 +1,1064 @@
+{
+  "schema_version": 3,
+  "source_template_sha256": "7911018e620ae190aa2619afb02389064449dfd14a7140b9a7926da35e068235",
+  "worksheet": "SLD",
+  "fixed_columns": {
+    "A": "Section",
+    "B": "Component",
+    "C": "Parameter"
+  },
+  "output_columns": {
+    "D": "Drawing Value",
+    "E": "PTS PDF Page",
+    "F": "PTS Reference"
+  },
+  "manual_only_columns": {
+    "G": "Note"
+  },
+  "rows": [
+    {
+      "id": 3,
+      "section": "Remote End",
+      "component": "OHL Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 4,
+      "section": "Remote End",
+      "component": "OHL Feeder",
+      "parameter": "Freestand CT"
+    },
+    {
+      "id": 5,
+      "section": "Remote End",
+      "component": "OHL Feeder",
+      "parameter": "Freestand CT Vkp"
+    },
+    {
+      "id": 6,
+      "section": "Remote End",
+      "component": "OHL Feeder",
+      "parameter": "SA"
+    },
+    {
+      "id": 7,
+      "section": "Remote End",
+      "component": "OHL Feeder",
+      "parameter": "VT"
+    },
+    {
+      "id": 8,
+      "section": "Remote End",
+      "component": "Cable Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 9,
+      "section": "GIS",
+      "component": "Type",
+      "parameter": "Arrangement"
+    },
+    {
+      "id": 10,
+      "section": "GIS",
+      "component": "System Rating",
+      "parameter": "Rating"
+    },
+    {
+      "id": 11,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "OHL Feeder"
+    },
+    {
+      "id": 12,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Cable Feeder"
+    },
+    {
+      "id": 13,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Transformer Feeder"
+    },
+    {
+      "id": 14,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Bus Coupler"
+    },
+    {
+      "id": 15,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Bus Section"
+    },
+    {
+      "id": 16,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Spare Equipped"
+    },
+    {
+      "id": 17,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Future"
+    },
+    {
+      "id": 18,
+      "section": "GIS",
+      "component": "Bays",
+      "parameter": "Bus VT Module"
+    },
+    {
+      "id": 19,
+      "section": "GIS",
+      "component": "Feeder VT",
+      "parameter": "Ratio"
+    },
+    {
+      "id": 20,
+      "section": "GIS",
+      "component": "Feeder VT",
+      "parameter": "Burden"
+    },
+    {
+      "id": 21,
+      "section": "GIS",
+      "component": "Feeder VT",
+      "parameter": "Class"
+    },
+    {
+      "id": 22,
+      "section": "GIS",
+      "component": "Feeder VT",
+      "parameter": "Type"
+    },
+    {
+      "id": 23,
+      "section": "GIS",
+      "component": "HS Earth SW",
+      "parameter": "No."
+    },
+    {
+      "id": 24,
+      "section": "GIS",
+      "component": "HS Earth SW",
+      "parameter": "Rating"
+    },
+    {
+      "id": 25,
+      "section": "GIS",
+      "component": "Earth SW",
+      "parameter": "No."
+    },
+    {
+      "id": 26,
+      "section": "GIS",
+      "component": "Earth SW",
+      "parameter": "Rating"
+    },
+    {
+      "id": 27,
+      "section": "GIS",
+      "component": "CB",
+      "parameter": "Feeder / Transformer Bay"
+    },
+    {
+      "id": 28,
+      "section": "GIS",
+      "component": "CB",
+      "parameter": "Bus Coupler / Bus Section"
+    },
+    {
+      "id": 29,
+      "section": "GIS",
+      "component": "CB",
+      "parameter": "Short Circuit"
+    },
+    {
+      "id": 30,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT Before CB Core 1"
+    },
+    {
+      "id": 31,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT Before CB Core 2"
+    },
+    {
+      "id": 32,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT Before CB Core 3"
+    },
+    {
+      "id": 33,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT Before CB Core 4"
+    },
+    {
+      "id": 34,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT After CB Core 1"
+    },
+    {
+      "id": 35,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT After CB Core 2"
+    },
+    {
+      "id": 36,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT After CB Core 3"
+    },
+    {
+      "id": 37,
+      "section": "GIS",
+      "component": "CT in OHL",
+      "parameter": "CT After CB Core 4"
+    },
+    {
+      "id": 38,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT Before CB Core 1"
+    },
+    {
+      "id": 39,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT Before CB Core 2"
+    },
+    {
+      "id": 40,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT Before CB Core 3"
+    },
+    {
+      "id": 41,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT Before CB Core 4"
+    },
+    {
+      "id": 42,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT After CB Core 1"
+    },
+    {
+      "id": 43,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT After CB Core 2"
+    },
+    {
+      "id": 44,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT After CB Core 3"
+    },
+    {
+      "id": 45,
+      "section": "GIS",
+      "component": "CT in Cable Feeder",
+      "parameter": "CT After CB Core 4"
+    },
+    {
+      "id": 46,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT Before CB Core 1"
+    },
+    {
+      "id": 47,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT Before CB Core 2"
+    },
+    {
+      "id": 48,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT Before CB Core 3"
+    },
+    {
+      "id": 49,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT Before CB Core 4"
+    },
+    {
+      "id": 50,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT After CB Core 1"
+    },
+    {
+      "id": 51,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT After CB Core 2"
+    },
+    {
+      "id": 52,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT After CB Core 3"
+    },
+    {
+      "id": 53,
+      "section": "GIS",
+      "component": "CT in Transformer Feeder",
+      "parameter": "CT After CB Core 4"
+    },
+    {
+      "id": 54,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "No."
+    },
+    {
+      "id": 55,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "Earth SW No."
+    },
+    {
+      "id": 56,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "Earth SW Rating"
+    },
+    {
+      "id": 57,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CB Rating"
+    },
+    {
+      "id": 58,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT Before CB Core 1"
+    },
+    {
+      "id": 59,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT Before CB Core 2"
+    },
+    {
+      "id": 60,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT Before CB Core 3"
+    },
+    {
+      "id": 61,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT Before CB Core 4"
+    },
+    {
+      "id": 62,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT After CB Core 1"
+    },
+    {
+      "id": 63,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT After CB Core 2"
+    },
+    {
+      "id": 64,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT After CB Core 3"
+    },
+    {
+      "id": 65,
+      "section": "GIS",
+      "component": "Bus Coupler",
+      "parameter": "CT After CB Core 4"
+    },
+    {
+      "id": 66,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "No."
+    },
+    {
+      "id": 67,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Earth SW No."
+    },
+    {
+      "id": 68,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Earth SW Rating"
+    },
+    {
+      "id": 69,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay Earth SW No."
+    },
+    {
+      "id": 70,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay Earth SW Rating"
+    },
+    {
+      "id": 71,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CB Rating"
+    },
+    {
+      "id": 72,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT Before CB Core 1"
+    },
+    {
+      "id": 73,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT Before CB Core 2"
+    },
+    {
+      "id": 74,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT Before CB Core 3"
+    },
+    {
+      "id": 75,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT Before CB Core 4"
+    },
+    {
+      "id": 76,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT After CB Core 1"
+    },
+    {
+      "id": 77,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT After CB Core 2"
+    },
+    {
+      "id": 78,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT After CB Core 3"
+    },
+    {
+      "id": 79,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "CT After CB Core 4"
+    },
+    {
+      "id": 80,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 1 Core 1"
+    },
+    {
+      "id": 81,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 1 Core 2"
+    },
+    {
+      "id": 82,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 1 Core 3"
+    },
+    {
+      "id": 83,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 1 Core 4"
+    },
+    {
+      "id": 84,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 2 Core 1"
+    },
+    {
+      "id": 85,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 2 Core 2"
+    },
+    {
+      "id": 86,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 2 Core 3"
+    },
+    {
+      "id": 87,
+      "section": "GIS",
+      "component": "Bus Section",
+      "parameter": "Lower Bus Section Bay CT 2 Core 4"
+    },
+    {
+      "id": 88,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "Rating"
+    },
+    {
+      "id": 89,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "GIB VT Ratio"
+    },
+    {
+      "id": 90,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "GIB VT Burden / Class"
+    },
+    {
+      "id": 91,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "Earth SW No."
+    },
+    {
+      "id": 92,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "Earth SW Rating"
+    },
+    {
+      "id": 93,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "SF6 / Air Bushing"
+    },
+    {
+      "id": 94,
+      "section": "GIS",
+      "component": "GIB",
+      "parameter": "GIS-to-Transformer Conductor"
+    },
+    {
+      "id": 95,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Voltage"
+    },
+    {
+      "id": 96,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Power"
+    },
+    {
+      "id": 97,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Frequency"
+    },
+    {
+      "id": 98,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Cooling"
+    },
+    {
+      "id": 99,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Vector Group"
+    },
+    {
+      "id": 100,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Impedance"
+    },
+    {
+      "id": 101,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "OLTC"
+    },
+    {
+      "id": 102,
+      "section": "Power Transformer",
+      "component": "Rating",
+      "parameter": "Ambient Temperature"
+    },
+    {
+      "id": 103,
+      "section": "Power Transformer",
+      "component": "No.",
+      "parameter": "Main"
+    },
+    {
+      "id": 104,
+      "section": "Power Transformer",
+      "component": "No.",
+      "parameter": "Future"
+    },
+    {
+      "id": 105,
+      "section": "Power Transformer",
+      "component": "No.",
+      "parameter": "Spare"
+    },
+    {
+      "id": 106,
+      "section": "Power Transformer",
+      "component": "SA",
+      "parameter": "Rating"
+    },
+    {
+      "id": 107,
+      "section": "Power Transformer",
+      "component": "CB",
+      "parameter": "Rating"
+    },
+    {
+      "id": 108,
+      "section": "Power Transformer",
+      "component": "Earth SW",
+      "parameter": "Rating"
+    },
+    {
+      "id": 109,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "HV Phase CT Cores 1-3"
+    },
+    {
+      "id": 110,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "HV WTI CT"
+    },
+    {
+      "id": 111,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "HV Neutral CT"
+    },
+    {
+      "id": 112,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "MV Phase CT Cores 1-2"
+    },
+    {
+      "id": 113,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "LV WTI CT"
+    },
+    {
+      "id": 114,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "AVR CT"
+    },
+    {
+      "id": 115,
+      "section": "Power Transformer",
+      "component": "Bushing CT",
+      "parameter": "Neutral SBEF CT"
+    },
+    {
+      "id": 116,
+      "section": "NGR",
+      "component": "No.",
+      "parameter": "Main"
+    },
+    {
+      "id": 117,
+      "section": "NGR",
+      "component": "Rating",
+      "parameter": "Resistance"
+    },
+    {
+      "id": 118,
+      "section": "NGR",
+      "component": "Rating",
+      "parameter": "Current / Time"
+    },
+    {
+      "id": 119,
+      "section": "NGR",
+      "component": "Rating",
+      "parameter": "Built-in Equipment"
+    },
+    {
+      "id": 120,
+      "section": "NGR",
+      "component": "Neutral Cable",
+      "parameter": "Rating"
+    },
+    {
+      "id": 121,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "System"
+    },
+    {
+      "id": 122,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "Main Bus"
+    },
+    {
+      "id": 123,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "Short Circuit"
+    },
+    {
+      "id": 124,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "BIL"
+    },
+    {
+      "id": 125,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "Power Frequency Withstand"
+    },
+    {
+      "id": 126,
+      "section": "SWGR",
+      "component": "Rating",
+      "parameter": "Ambient Temperature"
+    },
+    {
+      "id": 127,
+      "section": "SWGR",
+      "component": "Bus",
+      "parameter": "No."
+    },
+    {
+      "id": 128,
+      "section": "SWGR",
+      "component": "Transformer Incomer",
+      "parameter": "No."
+    },
+    {
+      "id": 129,
+      "section": "SWGR",
+      "component": "Transformer Incomer",
+      "parameter": "CB"
+    },
+    {
+      "id": 130,
+      "section": "SWGR",
+      "component": "Bus Section",
+      "parameter": "No."
+    },
+    {
+      "id": 131,
+      "section": "SWGR",
+      "component": "Bus Section",
+      "parameter": "CB"
+    },
+    {
+      "id": 132,
+      "section": "SWGR",
+      "component": "STATCOM Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 133,
+      "section": "SWGR",
+      "component": "STATCOM Feeder",
+      "parameter": "CB"
+    },
+    {
+      "id": 134,
+      "section": "SWGR",
+      "component": "Aux Transformer Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 135,
+      "section": "SWGR",
+      "component": "Aux Transformer Feeder",
+      "parameter": "CB"
+    },
+    {
+      "id": 136,
+      "section": "SWGR",
+      "component": "Outgoing Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 137,
+      "section": "SWGR",
+      "component": "Outgoing Feeder",
+      "parameter": "CB"
+    },
+    {
+      "id": 138,
+      "section": "SWGR",
+      "component": "Future Feeder",
+      "parameter": "No."
+    },
+    {
+      "id": 139,
+      "section": "SWGR",
+      "component": "VT",
+      "parameter": "Ratio"
+    },
+    {
+      "id": 140,
+      "section": "SWGR",
+      "component": "VT",
+      "parameter": "Burden / Class"
+    },
+    {
+      "id": 141,
+      "section": "SWGR",
+      "component": "VT",
+      "parameter": "Primary Fuse"
+    },
+    {
+      "id": 142,
+      "section": "SWGR",
+      "component": "Plain Feeder CT",
+      "parameter": "Protection CT"
+    },
+    {
+      "id": 143,
+      "section": "SWGR",
+      "component": "SIS Busbar",
+      "parameter": "Rating"
+    },
+    {
+      "id": 144,
+      "section": "Aux Transformer",
+      "component": "Feeder No.",
+      "parameter": "Main"
+    },
+    {
+      "id": 145,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Voltage"
+    },
+    {
+      "id": 146,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Power"
+    },
+    {
+      "id": 147,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Phase / Frequency"
+    },
+    {
+      "id": 148,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Cooling"
+    },
+    {
+      "id": 149,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Vector Group"
+    },
+    {
+      "id": 150,
+      "section": "Aux Transformer",
+      "component": "Rating",
+      "parameter": "Impedance"
+    },
+    {
+      "id": 151,
+      "section": "Aux Transformer",
+      "component": "MV Cable",
+      "parameter": "Rating"
+    },
+    {
+      "id": 152,
+      "section": "STATCOM",
+      "component": "No.",
+      "parameter": "Main"
+    },
+    {
+      "id": 153,
+      "section": "STATCOM",
+      "component": "Rating",
+      "parameter": "Reactive Power"
+    },
+    {
+      "id": 154,
+      "section": "STATCOM",
+      "component": "Rating",
+      "parameter": "Voltage"
+    },
+    {
+      "id": 155,
+      "section": "STATCOM",
+      "component": "Rating",
+      "parameter": "Overload"
+    },
+    {
+      "id": 156,
+      "section": "STATCOM",
+      "component": "Feeder CB",
+      "parameter": "Rating"
+    },
+    {
+      "id": 157,
+      "section": "STATCOM",
+      "component": "MV Cable",
+      "parameter": "Rating"
+    },
+    {
+      "id": 158,
+      "section": "STATCOM",
+      "component": "Cable Sealing End",
+      "parameter": "Rating"
+    },
+    {
+      "id": 159,
+      "section": "STATCOM",
+      "component": "IGBT Valve Container",
+      "parameter": "Rating"
+    },
+    {
+      "id": 160,
+      "section": "STATCOM",
+      "component": "Start-up Container",
+      "parameter": "Rating"
+    },
+    {
+      "id": 161,
+      "section": "Other Typical SLD Components",
+      "component": "CVT / CCVT",
+      "parameter": "Rating"
+    },
+    {
+      "id": 162,
+      "section": "Other Typical SLD Components",
+      "component": "Line Trap / Wave Trap",
+      "parameter": "Rating"
+    },
+    {
+      "id": 163,
+      "section": "Other Typical SLD Components",
+      "component": "Shunt Capacitor Bank",
+      "parameter": "Rating"
+    },
+    {
+      "id": 164,
+      "section": "Other Typical SLD Components",
+      "component": "Shunt Reactor",
+      "parameter": "Rating"
+    },
+    {
+      "id": 165,
+      "section": "Other Typical SLD Components",
+      "component": "Bus Reactor",
+      "parameter": "Rating"
+    },
+    {
+      "id": 166,
+      "section": "Other Typical SLD Components",
+      "component": "Series Reactor",
+      "parameter": "Rating"
+    },
+    {
+      "id": 167,
+      "section": "Other Typical SLD Components",
+      "component": "Grounding Transformer",
+      "parameter": "Rating"
+    },
+    {
+      "id": 168,
+      "section": "Other Typical SLD Components",
+      "component": "Petersen Coil",
+      "parameter": "Rating"
+    },
+    {
+      "id": 169,
+      "section": "Other Typical SLD Components",
+      "component": "AIS 110 kV CB / DS",
+      "parameter": "Rating"
+    },
+    {
+      "id": 170,
+      "section": "Other Typical SLD Components",
+      "component": "RMU",
+      "parameter": "Rating"
+    },
+    {
+      "id": 171,
+      "section": "Other Typical SLD Components",
+      "component": "HV Cable Link Box / SVL",
+      "parameter": "Rating"
+    },
+    {
+      "id": 172,
+      "section": "Other Typical SLD Components",
+      "component": "Diesel Generator",
+      "parameter": "Rating"
+    },
+    {
+      "id": 173,
+      "section": "Other Typical SLD Components",
+      "component": "UPS",
+      "parameter": "Rating"
+    },
+    {
+      "id": 174,
+      "section": "Other Typical SLD Components",
+      "component": "Station Battery / Charger",
+      "parameter": "Rating"
+    },
+    {
+      "id": 175,
+      "section": "Other Typical SLD Components",
+      "component": "Main ACDB",
+      "parameter": "Rating"
+    },
+    {
+      "id": 176,
+      "section": "Other Typical SLD Components",
+      "component": "Main DCDB",
+      "parameter": "Rating"
+    }
+  ]
+}

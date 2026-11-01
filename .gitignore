@@ -1,0 +1,60 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.env
+*_api_key*
+output/
+logs/
+*.log
+
+# Windows scripts
+*.bat
+*.cmd
+
+# Test files (not for production)
+tests/
+
+# Legacy / versioned files
+README_V*.md
+v*_cli.py
+core/pipeline_v*.py
+core/gis_schedule.py
+
+# Duplicate directories
+cad/

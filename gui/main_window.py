@@ -5,11 +5,12 @@ Contains the main application window and GUI components
 
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 import threading
 import queue
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 import sys
 import os
@@ -17,8 +18,11 @@ import os
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 
-from core.pdf_processor import PDFProcessor
-from core.sld_template_extractor import PDFIndex, SLDTemplate, SLDTemplateExtractor
+from core.pipeline_v3 import run_pipeline
+from core.groq_extractor import GroqExtractor, DEFAULT_MODEL, resolve_api_key
+from cad.gis_planner import build_cad_plan_from_json
+from cad.autocad_backend import insert_draft
+from cad.bay_layout import refresh_bay_layout
 from utils.file_handler import validate_pdf_file, get_output_filename, ensure_directory
 from gui.settings_panel import show_settings
 import config
@@ -34,7 +38,7 @@ class PDFExtractorApp(ctk.CTk):
         super().__init__()
 
         # Configure window
-        self.title("PTS to SLD Data Extractor v2.0")
+        self.title("PTS -> Markdown Sections -> Groq AI -> GIS CAD (v6)")
         self.geometry("900x700")
         self.minsize(800, 600)
 
@@ -56,6 +60,7 @@ class PDFExtractorApp(ctk.CTk):
         self.stop_event = threading.Event()
         self.processing_options = {}
         self.saved_settings = saved_settings
+        self.last_cad_plan = None
 
         # Create output directory
         ensure_directory(self.output_dir_path.get())
@@ -190,7 +195,7 @@ class PDFExtractorApp(ctk.CTk):
 
         workflow_label = ctk.CTkLabel(
             self.options_frame,
-            text="Workflow: Fixed SLD Template → Drawing Value / PTS Page / PTS Reference",
+            text="PDF -> Section Markdown -> Groq AI -> JSON -> Excel",
             text_color=("#1F4E78", "#8DB8E8")
         )
         workflow_label.grid(row=1, column=2, padx=20, pady=10, sticky="w")
@@ -223,6 +228,72 @@ class PDFExtractorApp(ctk.CTk):
             placeholder_text="End (optional)"
         )
         self.end_page_entry.grid(row=0, column=1, padx=(5, 10), pady=10)
+
+        self.use_ai_var = tk.BooleanVar(value=True)
+        self.groq_cb = ctk.CTkCheckBox(self.options_frame,
+            text="Use Groq Cloud API for extraction (GROQ_API_KEY)", variable=self.use_ai_var)
+        self.groq_cb.grid(row=3, column=0, columnspan=2, padx=20, pady=10, sticky="w")
+        self.cad_plan_var = tk.BooleanVar(value=True)
+        self.cad_plan_cb = ctk.CTkCheckBox(self.options_frame,
+            text="Prepare GIS CAD plan from AI JSON", variable=self.cad_plan_var)
+        self.cad_plan_cb.grid(row=3, column=2, padx=20, pady=10, sticky="w")
+        self.ocr_var = tk.BooleanVar(value=False)
+        self.ocr_cb = ctk.CTkCheckBox(self.options_frame,
+            text="OCR image-only pages (slow/local)", variable=self.ocr_var)
+        self.ocr_cb.grid(row=5, column=0, columnspan=2, padx=20, pady=(4,12), sticky="w")
+        self.ai_budget_label = ctk.CTkLabel(self.options_frame,
+            text="Test limit: Max AI rows (blank = ALL 174):")
+        self.ai_budget_label.grid(row=4, column=0, padx=20, pady=(4,12), sticky="w")
+        self.ai_budget_var = tk.StringVar(value="")
+        self.ai_budget_entry = ctk.CTkEntry(self.options_frame,
+            textvariable=self.ai_budget_var, width=90)
+        self.ai_budget_entry.grid(row=4, column=1, padx=20, pady=(4,12), sticky="w")
+        # V3 regression fix: the submit code previously referenced two widgets
+        # which had never been created, crashing before the Groq call.
+        self.groq_key_label = ctk.CTkLabel(self.options_frame,
+            text="Groq API key (hidden; not saved):")
+        self.groq_key_label.grid(row=6, column=0, padx=20, pady=(4,10), sticky="w")
+        self.groq_key_entry = ctk.CTkEntry(self.options_frame,
+            placeholder_text="Or use GROQ_API_KEY environment variable",
+            show="*", width=300)
+        self.groq_key_entry.grid(row=6, column=1, columnspan=2,
+                                 padx=20, pady=(4,10), sticky="ew")
+        self.groq_model_var = tk.StringVar(value=DEFAULT_MODEL)
+        self.groq_model_label = ctk.CTkLabel(self.options_frame,text='Groq model:')
+        self.groq_model_label.grid(row=8,column=0,padx=20,pady=(3,8),sticky='w')
+        self.groq_model_dropdown = ctk.CTkOptionMenu(self.options_frame,
+            values=['openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant','mixtral-8x7b-32768','openai/gpt-oss-120b','qwen/qwen3.8-27b'],
+            variable=self.groq_model_var)
+        self.groq_model_dropdown.grid(row=8,column=1,columnspan=2,padx=20,pady=(3,8),sticky='ew')
+        self.cad_vendor_var = tk.StringVar(value="HYUNDAI")
+        self.cad_vendor_label = ctk.CTkLabel(self.options_frame,
+            text="CAD symbol vendor:")
+        self.cad_vendor_label.grid(row=7, column=0, padx=20, pady=(4,12), sticky="w")
+        self.cad_vendor_dropdown = ctk.CTkOptionMenu(self.options_frame,
+            values=["HYUNDAI"], variable=self.cad_vendor_var)
+        self.cad_vendor_dropdown.grid(row=7, column=1, padx=20, pady=(4,12), sticky="w")
+        self.test_groq_btn = ctk.CTkButton(self.options_frame,
+            text="Test Groq Connection", command=self.test_groq_connection)
+        self.test_groq_btn.grid(row=7, column=2, padx=20, pady=(4,12), sticky="w")
+
+    def test_groq_connection(self):
+        """User-triggered CLOUD test (uses a few tokens, never logs the key)."""
+        key, key_source = resolve_api_key(self.groq_key_entry.get())
+        if not key:
+            messagebox.showwarning('Groq API',
+                'Enter a NEW Groq API key in the hidden field, or set GROQ_API_KEY.')
+            return
+        model = self.groq_model_var.get()  # read Tk state on the GUI thread
+        self.test_groq_btn.configure(state='disabled',text='Testing Groq...')
+        def worker():
+            try:
+                result=GroqExtractor(model=model,api_key=key,timeout_seconds=20).test_connection()
+                message=(f'Groq cloud connection OK. Model: {result["model"]}; '
+                         f'key source: {key_source}; transport: {result["transport"]}')
+            except Exception as exc:
+                message=f'Groq connection failed: {type(exc).__name__}: {str(exc)[:650]}'
+            self.message_queue.put({'type':'groq_test_result','data':message})
+        threading.Thread(target=worker,daemon=True).start()
 
     def create_control_frame(self):
         """Create control buttons frame"""
@@ -269,6 +340,10 @@ class PDFExtractorApp(ctk.CTk):
             command=self.open_settings
         )
         self.settings_btn.grid(row=0, column=3, padx=20, pady=15)
+
+        self.cad_btn = ctk.CTkButton(self.control_frame, text="Assemble CAD Draft",
+            command=self.draw_cad_draft, state="disabled", width=180)
+        self.cad_btn.grid(row=1, column=0, columnspan=2, padx=20, pady=(0,12), sticky="w")
 
     def create_progress_frame(self):
         """Create progress display frame"""
@@ -338,6 +413,15 @@ class PDFExtractorApp(ctk.CTk):
     def open_settings(self):
         """Open the persistent application settings panel."""
         show_settings(self)
+        saved = self._load_saved_settings()
+        general = saved.get("general", {})
+        pdf = saved.get("pdf_processing", {})
+        if "default_output_dir" in general:
+            self.output_dir_path.set(general["default_output_dir"])
+        if "open_output_after" in general:
+            self.open_output_var.set(bool(general["open_output_after"]))
+        if "save_intermediate" in pdf:
+            self.save_intermediate_var.set(bool(pdf["save_intermediate"]))
 
     @staticmethod
     def _load_saved_settings() -> dict:
@@ -392,6 +476,13 @@ class PDFExtractorApp(ctk.CTk):
             "end_page": int(self.end_page_var.get()) if self.end_page_var.get().strip() else None,
             "save_intermediate": self.save_intermediate_var.get(),
             "open_output": self.open_output_var.get(),
+            "use_ai": self.use_ai_var.get(),
+            "groq_api_key": self.groq_key_entry.get().strip() or None,
+            "groq_model": self.groq_model_var.get(),
+            "max_ai_rows": int(self.ai_budget_var.get()) if self.ai_budget_var.get().strip() else None,
+            "cad_plan": self.cad_plan_var.get(),
+            "cad_vendor": self.cad_vendor_var.get(),
+            "ocr_missing": self.ocr_var.get(),
         }
 
         # Clear log and reset progress
@@ -431,8 +522,10 @@ class PDFExtractorApp(ctk.CTk):
             messagebox.showerror("Validation Error", "Please select an output directory.")
             return False
 
-        # Validate page range if provided
+        # Validate page range and optional AI budget if provided
         try:
+            if self.ai_budget_var.get().strip() and int(self.ai_budget_var.get()) < 0:
+                raise ValueError("Max Groq rows must be non-negative")
             start_page = int(self.start_page_var.get()) if self.start_page_var.get().strip() else 1
             if start_page < 1:
                 raise ValueError("Start page must be at least 1")
@@ -461,11 +554,13 @@ class PDFExtractorApp(ctk.CTk):
             self.stop_btn.configure(state="normal")
             self.pdf_browse_btn.configure(state="disabled")
             self.output_browse_btn.configure(state="disabled")
+            self.cad_btn.configure(state="disabled")
         else:
             self.process_btn.configure(state="normal", text="Start Extraction")
             self.stop_btn.configure(state="disabled")
             self.pdf_browse_btn.configure(state="normal")
             self.output_browse_btn.configure(state="normal")
+            self.cad_btn.configure(state="normal" if self.last_cad_plan else "disabled")
 
     def stop_extraction(self):
         """Request stop of the extraction process"""
@@ -507,154 +602,139 @@ class PDFExtractorApp(ctk.CTk):
 
         if msg_type == "log":
             self.log_message(data)
+        elif msg_type == 'groq_test_result':
+            self.log_message(data)
+            self.test_groq_btn.configure(state='normal',text='Test Groq Connection')
         elif msg_type == "progress":
             self.update_progress(data.get("value", 0), data.get("text", ""))
         elif msg_type == "complete":
             self.extraction_complete(data.get("success", False), data.get("message", ""))
         elif msg_type == "error":
             self.extraction_error(data)
+        elif msg_type == "cad_complete":
+            self.cad_btn.configure(state="normal", text="Assemble CAD Draft")
+            messagebox.showinfo("CAD Draft Ready",
+                f"AutoCAD component draft created and saved to:\n{data}\n\n"
+                "Note: This is an unconnected layout draft, not an approved electrical SLD.")
+        elif msg_type == "cad_error":
+            self.cad_btn.configure(state="normal", text="Assemble CAD Draft")
+            error_msg = data.get("message", "Unknown error") if isinstance(data, dict) else str(data)
+            self.log_message("✗ " + error_msg)
+            messagebox.showerror("CAD Error", error_msg)
 
     def extraction_worker(self):
-        """Run the fixed-template SLD extraction in a background thread.
-
-        Performance rule: the uploaded PDF is opened/extracted once, then all
-        template rows search the in-memory page index. No equipment-schedule
-        branch remains in the application.
-        """
+        """Section-aware extraction with optional, strictly localized Groq calls."""
         try:
             options = self.processing_options
-            pdf_path = options["pdf_path"]
-            output_dir = options["output_dir"]
-            start_page = options["start_page"]
-            end_page = options["end_page"]
-            save_intermediate = options["save_intermediate"]
-
-            self.message_queue.put({"type": "log", "data": "Starting SLD template extraction..."})
-            self.message_queue.put({"type": "log", "data": "Opening uploaded PTS PDF..."})
-            pdf_processor = PDFProcessor(pdf_path)
-
-            total_pages = pdf_processor.get_total_pages()
-            actual_start = max(1, start_page)
-            actual_end = min(total_pages, end_page) if end_page else total_pages
-            if actual_start > total_pages:
-                raise ValueError(
-                    f"Start page {actual_start} is outside the PDF (it contains {total_pages} pages)"
-                )
-            if actual_end < actual_start:
-                raise ValueError("End page must be greater than or equal to start page")
-
-            project_root = Path(__file__).resolve().parent.parent
-            template_path = project_root / "assets" / "Extracted Sheet Tempelate.xlsx"
-            template = SLDTemplate(template_path)
-            template_rows = template.load_rows()
-            if not template_rows:
-                raise ValueError("The SLD template contains no extractable rows in columns A-C.")
-
-            self.message_queue.put({
-                "type": "log",
-                "data": (
-                    f"Indexing physical PDF pages {actual_start}-{actual_end} once "
-                    f"({actual_end - actual_start + 1} pages)..."
-                )
-            })
-
-            intermediate_dir = None
-            if save_intermediate:
-                intermediate_dir = Path(output_dir) / "intermediate_text"
-
-            def index_progress(done: int, total: int):
-                # Indexing occupies the first 70% of progress.
-                value = 0.70 * (done / max(total, 1))
-                self.message_queue.put({
-                    "type": "progress",
-                    "data": {
-                        "value": value,
-                        "text": f"Indexing PDF: {done}/{total} physical pages"
-                    }
-                })
-
-            pdf_index = PDFIndex.build(
-                pdf_processor,
-                start_page=actual_start,
-                end_page=actual_end,
-                progress_callback=index_progress,
-                stop_callback=self.stop_event.is_set,
-                intermediate_dir=intermediate_dir,
-            )
-
-            self.message_queue.put({
-                "type": "log",
-                "data": f"PDF indexed. Resolving {len(template_rows)} fixed template rows..."
-            })
-
-            extractor = SLDTemplateExtractor(pdf_index, pdf_path)
-            project_name = extractor.extract_project_name()
-            self.message_queue.put({
-                "type": "log",
-                "data": f"Project name: {project_name}"
-            })
-
-            def row_progress(done: int, total: int):
-                value = 0.70 + 0.28 * (done / max(total, 1))
-                self.message_queue.put({
-                    "type": "progress",
-                    "data": {
-                        "value": value,
-                        "text": f"Extracting template rows: {done}/{total}"
-                    }
-                })
-
-            results = extractor.extract_rows(
-                template_rows,
-                progress_callback=row_progress,
-                stop_callback=self.stop_event.is_set,
-            )
-
-            if self.stop_event.is_set():
-                raise InterruptedError("Extraction cancelled by user.")
-
-            ensure_directory(output_dir)
-            output_path = Path(output_dir) / "Extracted Data.xlsx"
-            self.message_queue.put({
-                "type": "progress",
-                "data": {"value": 0.99, "text": "Writing Excel output..."}
-            })
-            template.create_output(output_path, project_name, results)
-
-            found = sum(1 for result in results.values() if result.value != "NA")
-            missing = len(results) - found
-            success_msg = (
-                f"SLD extraction completed successfully!\n"
-                f"Indexed {len(pdf_index.pages)} physical PDF pages once\n"
-                f"Template rows: {len(results)} | Found: {found} | NA: {missing}\n"
-                f"Saved to: {output_path}"
-            )
-            self.message_queue.put({
-                "type": "complete",
-                "data": {"success": True, "message": success_msg}
-            })
-
-            if options["open_output"]:
-                try:
-                    os.startfile(str(Path(output_dir)))
-                except AttributeError:
-                    if sys.platform == "darwin":
-                        os.system(f'open "{output_dir}"')
-                    else:
-                        os.system(f'xdg-open "{output_dir}"')
-
+            if options['use_ai'] and not resolve_api_key(options['groq_api_key'])[0]:
+                raise ValueError('Enter the Groq API key in the GUI or configure .env locally' )
+            def report(value, label):
+                self.message_queue.put({'type':'progress',
+                    'data':{'value':value,'text':label}})
+            self.message_queue.put({'type':'log','data':'Extracting auditable Markdown sections ...'})
+            root = Path(__file__).resolve().parent.parent
+            result = run_pipeline(options['pdf_path'], options['output_dir'],
+                root/'assets'/'Extracted Sheet Tempelate.xlsx',
+                start_page=options['start_page'], end_page=options['end_page'],
+                use_ai=options['use_ai'], groq_api_key=options['groq_api_key'],
+                groq_model=options['groq_model'],
+                max_ai_rows=options['max_ai_rows'],
+                ocr_missing=options['ocr_missing'],
+                progress=report, stop=self.stop_event.is_set)
+            self.last_cad_plan = None
+            if options['cad_plan']:
+                plan_file = Path(options['output_dir'])/'gis_plan.json'
+                plan = build_cad_plan_from_json(result['results_json'],
+                    root/'assets/cad/VERTICES.xlsx',
+                    root/'assets/cad/vendors'/options['cad_vendor'], plan_file,
+                    vendor=options['cad_vendor'])
+                self.last_cad_plan = str(plan_file)
+                self.message_queue.put({'type':'log',
+                    'data':f'GIS drawing plan created ({len(plan["issues"])} review items). Drawing is not electrically connected.'})
+            success = (
+                f'Extraction completed. Pages: {result["pdf_pages"]}; '
+                f'Markdown sections: {result["markdown_sections"]}; '
+                f'Resolved rows: {result["found"]}/{result["total_rows"]}; Groq batches: {result["ai_requested"]}\n'
+                f'Excel: {result["output_excel"]}\n'
+                f'QA: {result["audit_json"]}\n'
+                f'Extraction JSON: {result["results_json"]}\n'
+                f'CAD plan: {self.last_cad_plan or "not requested"}')
+            self.message_queue.put({'type':'complete',
+                'data':{'success':True,'message':success}})
+            if options['open_output'] and os.name == 'nt':
+                os.startfile(str(Path(options['output_dir'])))
         except InterruptedError:
-            self.message_queue.put({
-                "type": "complete",
-                "data": {"success": False, "message": "Extraction cancelled by user."}
-            })
-        except Exception as e:
-            error_msg = f"Error during extraction: {str(e)}"
-            logger.error(error_msg, exc_info=True)
-            self.message_queue.put({
-                "type": "error",
-                "data": {"message": error_msg, "exception": str(e)}
-            })
+            self.message_queue.put({'type':'complete',
+                'data':{'success':False,'message':'Stopped by user'}})
+        except Exception as exc:
+            logger.exception('Pipeline failed')
+            self.message_queue.put({'type':'error',
+                'data':{'message':str(exc),'exception':str(exc)}})
+
+    def draw_cad_draft(self):
+        """User-initiated CAD draft; unresolved BOM entries block unsafe output."""
+        if not self.last_cad_plan:
+            messagebox.showwarning('CAD', 'Run extraction and prepare GIS plan first.')
+            return
+        source = Path(self.last_cad_plan)
+        plan_data = json.loads(source.read_text(encoding='utf-8'))
+        # Future bays are DISTINCT from equipped spares, and can always be
+        # explicitly added/changed by the user regardless of source value.
+        future_data = plan_data['components'].get('F-INCOMER', {})
+        future_detected = future_data.get('quantity')
+        future_default = future_detected if future_detected is not None else 0
+        future_answer = simpledialog.askinteger('Future GIS incomers',
+            'Future bays to show on CAD?\n'
+            f'AI-backed specification count: {future_detected if future_detected is not None else "not established"}.\n'
+            'Enter 0 if none; equipped spares are NOT future bays.',
+            initialvalue=future_default, minvalue=0, maxvalue=200, parent=self)
+        if future_answer is None: return
+        approved = {}
+        if future_detected != future_answer or future_detected is None:
+            approved['F-INCOMER'] = future_answer
+            future_data['quantity'] = future_answer
+            plan_data['future_bays'] = {'drawing_quantity':future_answer,
+                'source':'USER_OVERRIDE','manual_override':future_answer}
+        for name, data in plan_data['components'].items():
+            if data['quantity'] is None:
+                quantity = simpledialog.askinteger('Confirm GIS quantity',
+                    f'Unresolved {name} quantity. Enter a verified number for CAD draft:',
+                    minvalue=0, maxvalue=200, parent=self)
+                if quantity is None:
+                    self.log_message(f'CAD drawing cancelled: {name} quantity not confirmed')
+                    return
+                data['quantity'] = quantity
+                approved[name] = quantity
+        refresh_bay_layout(plan_data)
+        if approved:
+            source = source.with_name('gis_plan_manual_draft.json')
+            plan_data['manual_quantity_overrides'] = approved
+            source.write_text(json.dumps(plan_data, indent=2), encoding='utf-8')
+        else:
+            # Keep the reviewed geometry synchronized with displayed counts.
+            source = source.with_name('gis_plan_reviewed_draft.json')
+            source.write_text(json.dumps(plan_data, indent=2), encoding='utf-8')
+        layout=plan_data.get('bay_layout',{})
+        remote_summary='; '.join(e.get('name','') for e in layout.get('remote_ends',[]))
+        split=f"GIS bay slots: LEFT {layout.get('total_on_left',0)} | RIGHT {layout.get('total_on_right',0)}\n"
+        if not messagebox.askokcancel('Draft only',
+               split + f'Remote ends: {remote_summary or "not found"}\n\n' +
+               'This creates an UNCONNECTED layout of CAD symbols. '
+               'It is NOT a checked electrical SLD. Continue?', parent=self):
+            return
+        template = Path(__file__).resolve().parent.parent/'assets/cad/SLD Drawing Template 0.1.dwt'
+        filename = source.parent / f'GIS_DRAFT_UNCONNECTED_{datetime.now():%Y%m%d_%H%M%S}.dwg'
+        self.cad_btn.configure(state="disabled", text="Drafting CAD...")
+        def worker():
+            try:
+                result = insert_draft(source, template, filename,
+                                      on_progress=lambda text: self.message_queue.put({'type':'log', 'data':text}))
+                self.message_queue.put({'type':'log','data':f'AutoCAD component draft saved: {result}'})
+                self.message_queue.put({'type':'cad_complete','data':str(result)})
+            except Exception as exc:
+                self.message_queue.put({'type':'cad_error',
+                    'data':{'message':f'CAD drawing failed: {exc}'}})
+        threading.Thread(target=worker, daemon=True).start()
 
     def extraction_complete(self, success: bool, message: str):
         """

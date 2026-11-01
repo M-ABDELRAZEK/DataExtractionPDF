@@ -272,9 +272,15 @@ class SLDTemplate:
             ws.cell(row_num, 7).value = None
 
         for row_num, result in results.items():
-            ws.cell(row_num, 4).value = result.value
-            ws.cell(row_num, 5).value = result.pages
-            ws.cell(row_num, 6).value = result.reference
+            # Keep untrusted model strings as literal text, not Excel formulas.
+            def literal(value):
+                if not isinstance(value, str): return value
+                if value.startswith('='):
+                    return "'" + value
+                return value[:32767]
+            ws.cell(row_num, 4).value = literal(result.value)
+            ws.cell(row_num, 5).value = literal(result.pages)
+            ws.cell(row_num, 6).value = literal(result.reference)
             ws.cell(row_num, 7).value = None
 
         output_path = Path(output_path)

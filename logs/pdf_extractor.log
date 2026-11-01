@@ -1,12 +1,78 @@
-2026-10-06 15:24:27,435 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-06 15:25:59,473 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-06 15:27:41,428 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-06 15:29:10,394 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-06 15:29:15,741 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-06 15:32:21,229 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-07 12:10:23,802 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
-2026-10-07 12:10:25,185 - gui.main_window - INFO - PDF Extractor Application initialized
-2026-10-07 12:10:51,907 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
-2026-10-07 12:10:51,926 - gui.main_window - INFO - Started PDF extraction process
-2026-10-07 12:10:52,485 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
-2026-10-07 12:10:52,506 - core.pdf_processor - INFO - Extracting physical PDF pages 1 to 3091
+2026-10-21 01:19:26,481 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-21 01:19:27,463 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-21 01:19:53,486 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-21 01:19:53,504 - gui.main_window - INFO - Started PDF extraction process
+2026-10-21 01:19:54,427 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
+2026-10-21 01:19:54,428 - core.pdf_processor - INFO - Extracting physical PDF pages 1 to 3091
+2026-10-21 01:21:59,575 - core.pipeline_v3 - ERROR - Groq stopped at batch 4: Groq HTTP 429 (rate_limit_exceeded, tokens): Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m5b6bnpaevctcjpt80k0wj4x` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 4730, Requested 3321. Please try again in 382.499999ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing | Rate limit: retry after the reported cooldown. | request-id: req_01m5dpgef4ezavex2zjr63fxky
+2026-10-21 01:21:59,623 - gui.main_window - ERROR - Pipeline failed
+Traceback (most recent call last):
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v10\gui\main_window.py", line 617, in extraction_worker
+    result = run_pipeline(options['pdf_path'], options['output_dir'],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v10\core\pipeline_v3.py", line 238, in run_pipeline
+    raise RuntimeError('Groq extraction stopped at batch '
+RuntimeError: Groq extraction stopped at batch 4. Markdown/debug files and PARTIAL Excel were preserved. Groq HTTP 429 (rate_limit_exceeded, tokens): Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m5b6bnpaevctcjpt80k0wj4x` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 4730, Requested 3321. Please try again in 382.499999ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing | Rate limit: retry after the reported cooldown. | request-id: req_01m5dpgef4ezavex2zjr63fxky
+2026-10-21 01:23:43,894 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-21 01:23:43,906 - gui.main_window - INFO - Started PDF extraction process
+2026-10-23 21:48:56,240 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-23 21:48:57,583 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-23 21:50:30,765 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-23 21:50:31,685 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-23 22:38:24,902 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-23 22:38:26,139 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-23 22:40:08,946 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-23 22:40:09,737 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-23 22:40:18,408 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-23 22:40:18,425 - gui.main_window - INFO - Started PDF extraction process
+2026-10-24 00:37:11,151 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-24 00:37:12,042 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-24 00:37:48,226 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-24 00:37:48,237 - gui.main_window - INFO - Started PDF extraction process
+2026-10-24 14:39:33,730 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-24 14:39:34,654 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-31 17:05:20,211 - __main__ - INFO - Starting PTS to SLD Data Extractor Application
+2026-10-31 17:05:21,042 - gui.main_window - INFO - PDF Extractor Application initialized
+2026-10-31 17:08:50,675 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-31 17:08:50,687 - gui.main_window - INFO - Started PDF extraction process
+2026-10-31 17:08:50,936 - gui.main_window - ERROR - Pipeline failed
+Traceback (most recent call last):
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\gui\main_window.py", line 636, in extraction_worker
+    result = run_pipeline(options['pdf_path'], options['output_dir'],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\core\pipeline_v3.py", line 127, in run_pipeline
+    raise RuntimeError('Groq preflight failed; extraction stopped before PDF parsing. '
+RuntimeError: Groq preflight failed; extraction stopped before PDF parsing. Groq HTTP 404 (model_not_found, invalid_request_error): The model `llama-3.3-70b-versatile` does not exist or you do not have access to it. | request-id: req_01m69837jre5yaxyz6c0bzmn1g
+2026-10-31 17:09:08,055 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-31 17:09:08,067 - gui.main_window - INFO - Started PDF extraction process
+2026-10-31 17:09:08,239 - gui.main_window - ERROR - Pipeline failed
+Traceback (most recent call last):
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\gui\main_window.py", line 636, in extraction_worker
+    result = run_pipeline(options['pdf_path'], options['output_dir'],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\core\pipeline_v3.py", line 127, in run_pipeline
+    raise RuntimeError('Groq preflight failed; extraction stopped before PDF parsing. '
+RuntimeError: Groq preflight failed; extraction stopped before PDF parsing. Groq HTTP 404 (model_not_found, invalid_request_error): The model `llama-3.1-8b-instant` does not exist or you do not have access to it. | request-id: req_01m6983rfkej5vrjnkja6vsqyq
+2026-10-31 17:09:11,239 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-31 17:09:11,257 - gui.main_window - INFO - Started PDF extraction process
+2026-10-31 17:09:11,457 - gui.main_window - ERROR - Pipeline failed
+Traceback (most recent call last):
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\gui\main_window.py", line 636, in extraction_worker
+    result = run_pipeline(options['pdf_path'], options['output_dir'],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\core\pipeline_v3.py", line 127, in run_pipeline
+    raise RuntimeError('Groq preflight failed; extraction stopped before PDF parsing. '
+RuntimeError: Groq preflight failed; extraction stopped before PDF parsing. Groq HTTP 400 (model_decommissioned, invalid_request_error): The model `mixtral-8x7b-32768` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead. | request-id: req_01m6983vkyev6bpem9tdzy2ym4
+2026-10-31 17:09:22,253 - utils.file_handler - INFO - PDF validation passed: D:\EDU\Graduation Project\21WN1008 SHOAIBA 3 FINAL SOW.pdf (116.6 MB)
+2026-10-31 17:09:22,265 - gui.main_window - INFO - Started PDF extraction process
+2026-10-31 17:09:23,193 - core.pdf_processor - INFO - PDF initialized: 21WN1008 SHOAIBA 3 FINAL SOW.pdf (3091 pages)
+2026-10-31 17:09:23,194 - core.pdf_processor - INFO - Extracting physical PDF pages 1 to 3091
+2026-10-31 17:34:36,482 - core.pipeline_v3 - ERROR - Groq stopped at batch 45: Groq HTTP 429 (rate_limit_exceeded, tokens): Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m5b6bnpaevctcjpt80k0wj4x` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199522, Requested 3725. Please try again in 23m22.704s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing | Rate limit: retry after the reported cooldown. | request-id: req_01m699jd04eb5aw31495cdyc46
+2026-10-31 17:34:36,540 - gui.main_window - ERROR - Pipeline failed
+Traceback (most recent call last):
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\gui\main_window.py", line 636, in extraction_worker
+    result = run_pipeline(options['pdf_path'], options['output_dir'],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EDU\Graduation Project\SLD_Extractor_CAD_v11\core\pipeline_v3.py", line 238, in run_pipeline
+    raise RuntimeError('Groq extraction stopped at batch '
+RuntimeError: Groq extraction stopped at batch 45. Markdown/debug files and PARTIAL Excel were preserved. Groq HTTP 429 (rate_limit_exceeded, tokens): Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m5b6bnpaevctcjpt80k0wj4x` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199522, Requested 3725. Please try again in 23m22.704s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing | Rate limit: retry after the reported cooldown. | request-id: req_01m699jd04eb5aw31495cdyc46
