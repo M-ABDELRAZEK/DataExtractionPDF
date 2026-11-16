@@ -262,7 +262,7 @@ class PDFExtractorApp(ctk.CTk):
         self.groq_model_label = ctk.CTkLabel(self.options_frame,text='Groq model:')
         self.groq_model_label.grid(row=8,column=0,padx=20,pady=(3,8),sticky='w')
         self.groq_model_dropdown = ctk.CTkOptionMenu(self.options_frame,
-            values=['openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant','mixtral-8x7b-32768','openai/gpt-oss-120b','qwen/qwen3.8-27b'],
+            values=['openai/gpt-oss-20b','openai/gpt-oss-120b','qwen/qwen3.8-27b'],
             variable=self.groq_model_var)
         self.groq_model_dropdown.grid(row=8,column=1,columnspan=2,padx=20,pady=(3,8),sticky='ew')
         self.cad_vendor_var = tk.StringVar(value="HYUNDAI")
